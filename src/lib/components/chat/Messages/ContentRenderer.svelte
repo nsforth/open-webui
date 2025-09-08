@@ -154,7 +154,7 @@
 				const id = metadata?.source ?? 'N/A';
 
 				if (metadata?.name) {
-					ids.push(metadata.name);
+					ids.push(index + 1);
 					return ids;
 				}
 

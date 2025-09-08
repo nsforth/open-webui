@@ -564,6 +564,7 @@ def get_sources_from_items(
                                         "file_id": item.get("id"),
                                         "name": file_object.filename,
                                         "source": file_object.filename,
+                                        "data": file_object.meta.get("data", {}) if file_object.meta else {}
                                     }
                                 ]
                             ],
@@ -602,6 +603,7 @@ def get_sources_from_items(
                                     "file_id": file_id,
                                     "name": file_object.filename,
                                     "source": file_object.filename,
+                                    "data": file_object.meta.get("data", {}) if file_object.meta else {}
                                 }
                             )
 

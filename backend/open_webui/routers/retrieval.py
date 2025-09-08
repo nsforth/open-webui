@@ -1393,6 +1393,7 @@ def process_file(
                         "created_by": file.user_id,
                         "file_id": file.id,
                         "source": file.filename,
+                        **file.meta.get("data", {})
                     },
                 )
             ]
@@ -1424,6 +1425,7 @@ def process_file(
                             "created_by": file.user_id,
                             "file_id": file.id,
                             "source": file.filename,
+                            **file.meta.get("data", {})
                         },
                     )
                 ]
@@ -1478,6 +1480,7 @@ def process_file(
                             "created_by": file.user_id,
                             "file_id": file.id,
                             "source": file.filename,
+                            **file.meta.get("data", {})
                         },
                     )
                     for doc in docs
@@ -1492,6 +1495,7 @@ def process_file(
                             "created_by": file.user_id,
                             "file_id": file.id,
                             "source": file.filename,
+                            **file.meta.get("data", {})
                         },
                     )
                 ]
@@ -1516,6 +1520,7 @@ def process_file(
                         "file_id": file.id,
                         "name": file.filename,
                         "hash": hash,
+                        **file.meta.get("data", {})
                     },
                     add=(True if form_data.collection_name else False),
                     user=user,

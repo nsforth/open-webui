@@ -68,6 +68,10 @@
 					_source = { ..._source, name: metadata.name };
 				}
 
+				if (metadata?.title) {
+					_source = { ..._source, title: metadata.title };
+				}
+
 				if (id.startsWith('http://') || id.startsWith('https://')) {
 					_source = { ..._source, name: id, url: id };
 				}
@@ -134,7 +138,7 @@
 						<div
 							class="flex-1 mx-1 truncate text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white transition"
 						>
-							{decodeString(citation.source.name)}
+							{decodeString(citation.source.title)}
 						</div>
 					</button>
 				{/each}
@@ -174,7 +178,7 @@
 											</div>
 										{/if}
 										<div class="flex-1 mx-1 truncate">
-											{decodeString(citation.source.name)}
+											{decodeString(citation.source.title)}
 										</div>
 									</button>
 								{/each}
@@ -210,7 +214,7 @@
 									</div>
 								{/if}
 								<div class="flex-1 mx-1 truncate">
-									{decodeString(citation.source.name)}
+									{decodeString(citation.source.title)}
 								</div>
 							</button>
 						{/each}

@@ -1005,12 +1005,17 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                         or "N/A"
                     )
 
+                    source_title = document_metadata.get("title", "")
+                    source_url = document_metadata.get("url", "")
+
                     if source_id not in citation_idx_map:
                         citation_idx_map[source_id] = len(citation_idx_map) + 1
 
                     context_string += (
                         f'<source id="{citation_idx_map[source_id]}"'
                         + (f' name="{source_name}"' if source_name else "")
+                        + (f' title="{source_title}"' if source_title else "")
+                        + (f' url="{source_url}"' if source_url else "")
                         + f">{document_text}</source>\n"
                     )
 

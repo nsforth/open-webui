@@ -56,6 +56,33 @@
 			return str;
 		}
 	};
+
+	function getSourceUrl(doc: any): string {
+		if (doc?.metadata?.url && doc.metadata.url.includes('http')) {
+			return doc.metadata.url;
+		}
+		if (doc?.metadata?.file_id) {
+			const pageParam = doc?.metadata?.page !== undefined ? `#page=${doc.metadata.page + 1}` : '';
+			return `${WEBUI_API_BASE_URL}/files/${doc.metadata.file_id}/content${pageParam}`;
+		}
+		if (doc?.source?.url && doc.source.url.includes('http')) {
+			return doc.source.url;
+		}
+		return '#';
+	}
+
+	function getSourceTitle(doc: any): string {
+		if (doc?.metadata?.title) {
+			return decodeString(doc.metadata.title);
+		}
+		if (doc?.metadata?.name) {
+			return decodeString(doc.metadata.name);
+		}
+		if (doc?.source?.name) {
+			return decodeString(doc.source.name);
+		}
+		return $i18n.t('Unknown source');
+	}
 </script>
 
 <Modal size="lg" bind:show>
@@ -84,24 +111,21 @@
 							{$i18n.t('Source')}
 						</div>
 
-						{#if document.source?.name}
+						{#if document.source || document.metadata}
 							<Tooltip
 								className="w-fit"
-								content={$i18n.t('Open file')}
+								content={$i18n.t('Open link')}
 								placement="top-start"
 								tippyOptions={{ duration: [500, 0] }}
 							>
 								<div class="text-sm dark:text-gray-400 flex items-center gap-2 w-fit">
 									<a
 										class="hover:text-gray-500 dark:hover:text-gray-100 underline grow"
-										href={document?.metadata?.file_id
-											? `${WEBUI_API_BASE_URL}/files/${document?.metadata?.file_id}/content${document?.metadata?.page !== undefined ? `#page=${document.metadata.page + 1}` : ''}`
-											: document.source?.url?.includes('http')
-												? document.source.url
-												: `#`}
+										href={getSourceUrl(document)}
 										target="_blank"
+										rel="noopener noreferrer"
 									>
-										{decodeString(document?.metadata?.name ?? document.source.name)}
+										{getSourceTitle(document)}
 									</a>
 									{#if Number.isInteger(document?.metadata?.page)}
 										<span class="text-xs text-gray-500 dark:text-gray-400">

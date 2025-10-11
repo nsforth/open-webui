@@ -495,6 +495,8 @@ from open_webui.utils.redis import get_sentinels_from_env
 
 from open_webui.constants import ERROR_MESSAGES
 
+from open_webui.retrieval.lexical.lexical_retrivers import LEXICAL_RETRIVERS_INSTANCE
+
 
 if SAFE_MODE:
     print("SAFE MODE ENABLED")
@@ -536,6 +538,7 @@ https://github.com/open-webui/open-webui
 """
 )
 
+LEXICAL_RETRIVERS_INSTANCE.scheduled_update()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

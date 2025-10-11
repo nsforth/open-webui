@@ -137,14 +137,17 @@ def query_doc_with_hybrid_search(
         )
 
         if hybrid_bm25_weight <= 0:
+            log.info(f"query_doc_with_hybrid_search: lexical only retrieval")
             ensemble_retriever = EnsembleRetriever(
                 retrievers=[vector_search_retriever], weights=[1.0]
             )
         elif hybrid_bm25_weight >= 1:
+            log.info(f"query_doc_with_hybrid_search: semantic only retrieval")
             ensemble_retriever = EnsembleRetriever(
                 retrievers=[bm25_retriever], weights=[1.0]
             )
         else:
+            log.info(f"query_doc_with_hybrid_search: hybrid retrival semantical+lexical")
             ensemble_retriever = EnsembleRetriever(
                 retrievers=[bm25_retriever, vector_search_retriever],
                 weights=[hybrid_bm25_weight, 1.0 - hybrid_bm25_weight],
@@ -161,7 +164,7 @@ def query_doc_with_hybrid_search(
             base_compressor=compressor, base_retriever=ensemble_retriever
         )
 
-        log.info(f"invoking ContextualCompressionRetriever with {query} on {collection_name}")
+        log.info(f"invoking ContextualCompressionRetriever with query \"{query}\" on {collection_name}")
         result = compression_retriever.invoke(query)
 
         distances = [d.metadata.get("score") for d in result]

@@ -9,7 +9,7 @@ from open_webui.retrieval.lexical.stemmers import BilingualStemmer
 
 log = logging.getLogger(__name__)
 
-RETRIVERS_UPDATE_INTERVAL = 1 # Minutes
+RETRIVERS_UPDATE_INTERVAL = 10 # Minutes
 
 class Retriever:    
     def __init__(self, collection_id: str, collection_name: str, 
@@ -42,7 +42,7 @@ class Retrievers:
         self._scheduler.start()
         log.info(f"Periodic update scheduler started (interval: {RETRIVERS_UPDATE_INTERVAL} minute)")
 
-    def _scheduled_update(self) -> None:        
+    def scheduled_update(self) -> None:        
         log.info(f"Performing lexical retrievers scheduled update")        
         kbs_to_update: List[KnowledgeUserModel] = self.sync_retrievers(Knowledges.get_knowledge_bases())
         if kbs_to_update:            

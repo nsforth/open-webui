@@ -128,13 +128,17 @@ def query_doc_with_hybrid_search(
     try:
         log.info(f"query_doc_with_hybrid_search:doc {collection_name}")
 
-        bm25_retriever = LEXICAL_RETRIVERS_INSTANCE.get_retriever_by_collection_name(collection_name, k)
+        bm25_retriever = LEXICAL_RETRIVERS_INSTANCE.get_retriever_by_collection_name(collection_name, k).with_listeners(
+            on_end=lambda r: log.info(f"BM25 retriver ended with {r}")
+            )
 
         vector_search_retriever = VectorSearchRetriever(
             collection_name=collection_name,
             embedding_function=embedding_function,
             top_k=k,
-        )
+        ).with_listeners(
+            on_end=lambda r: log.info(f"Vector retriver ended with {r}")
+            )
 
         if hybrid_bm25_weight <= 0:
             log.info(f"query_doc_with_hybrid_search: lexical only retrieval")

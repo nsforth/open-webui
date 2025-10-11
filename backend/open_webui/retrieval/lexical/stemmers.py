@@ -7,8 +7,8 @@ from nltk.stem import SnowballStemmer
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-nltk.download('punkt_tab', quiet=True)
-nltk.download('stopwords', quiet=True)
+nltk.download('punkt_tab')
+nltk.download('stopwords')
 
 class BilingualStemmer:
     

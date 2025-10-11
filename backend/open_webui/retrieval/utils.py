@@ -115,6 +115,12 @@ def get_doc(collection_name: str, user: UserModel = None):
         raise e
 
 
+def _get_retrived_documents_names(runnable):
+    outputs = r.outputs
+    documents = outputs.get("documents", [])
+    docs_names = [doc.metadata["source"] for doc in documents]
+    return " ".join(docs_names)
+
 def query_doc_with_hybrid_search(
     collection_name: str,    
     query: str,
@@ -129,7 +135,7 @@ def query_doc_with_hybrid_search(
         log.info(f"query_doc_with_hybrid_search:doc {collection_name}")
 
         bm25_retriever = LEXICAL_RETRIVERS_INSTANCE.get_retriever_by_collection_name(collection_name, k).with_listeners(
-            on_end=lambda r: log.info(f"BM25 retriver ended with {r}")
+            on_end=lambda r: log.info(f"BM25 retriver ended with {_get_retrived_documents_names(r)}")
             )
 
         vector_search_retriever = VectorSearchRetriever(
@@ -137,7 +143,7 @@ def query_doc_with_hybrid_search(
             embedding_function=embedding_function,
             top_k=k,
         ).with_listeners(
-            on_end=lambda r: log.info(f"Vector retriver ended with {r}")
+            on_end=lambda r: log.info(f"Vector retriever ended with {_get_retrived_documents_names(r)}")
             )
 
         if hybrid_bm25_weight <= 0:

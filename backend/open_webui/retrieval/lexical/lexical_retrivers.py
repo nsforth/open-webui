@@ -38,7 +38,7 @@ class Retrievers:
             log.info("Lexical Retrievers singleton initialized")
 
     def _start_periodic_update(self) -> None:        
-        self._scheduler.add_job(self._scheduled_update, 'interval', minutes=RETRIVERS_UPDATE_INTERVAL)
+        self._scheduler.add_job(self.scheduled_update, 'interval', minutes=RETRIVERS_UPDATE_INTERVAL)
         self._scheduler.start()
         log.info(f"Periodic update scheduler started (interval: {RETRIVERS_UPDATE_INTERVAL} minute)")
 

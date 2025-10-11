@@ -43,7 +43,7 @@ class Retrievers:
         log.info(f"Periodic update scheduler started (interval: {RETRIVERS_UPDATE_INTERVAL} minute)")
 
     def _scheduled_update(self) -> None:        
-        log.info(f"Performing lexical retrivers scheduled update")        
+        log.info(f"Performing lexical retrievers scheduled update")        
         kbs_to_update: List[str] = self.sync_retrievers(Knowledges.get_knowledge_bases())
         if kbs_to_update:            
             self.update_retrievers(kbs_to_update)
@@ -58,14 +58,19 @@ class Retrievers:
                 incoming_col: KnowledgeUserModel = incoming_dict[retriever_id]                
                 if incoming_col.updated_at > retriever.updated_at:
                     kbs_to_update.append(retriever_id)
-                    log.info(f"Lexcical retriever for knowledge base {retriever_id} ({retriever.name}) marked for update: "
+                    log.info(f"Lexical retriever for knowledge base {retriever_id} ({retriever.name}) marked for update: "
                                 f"incoming timestamp {incoming_col.updated_at} > current {retriever.updated_at}")
             else:                
                 del self._retrievers[retriever_id]
-                log.info(f"Remobm25_params lexical retriever {retriever_id} marked for creation")
+                log.info(f"Lexical retriever {retriever_id} removed")
         
+        for kb in incoming:
+            if kb.id not in self._retrievers.keys():
+                kbs_to_update.append(retriever_id)
+                log.info(f"Lexical retriever {retriever_id} created")
+
         if kbs_to_update:
-            log.info(f"Lexical retrievers sync completed: {len(kbs_to_update)} retrivers need updating")
+            log.info(f"Lexical retrievers sync completed: {len(kbs_to_update)} retrievers need updating")
         else:
             log.info("Lexical retrievers sync completed: no retrievers need updating")
         

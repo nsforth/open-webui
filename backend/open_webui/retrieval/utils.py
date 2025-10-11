@@ -26,7 +26,7 @@ from open_webui.models.notes import Notes
 from open_webui.retrieval.vector.main import GetResult
 from open_webui.utils.access_control import has_access
 from open_webui.utils.misc import get_message_list
-
+from open_webui.retrieval.lexical.lexical_retrivers import LEXICAL_RETRIVERS_INSTANCE
 
 from open_webui.env import (
     SRC_LOG_LEVELS,
@@ -116,10 +116,9 @@ def get_doc(collection_name: str, user: UserModel = None):
 
 
 def query_doc_with_hybrid_search(
-    collection_name: str,
-    collection_result: GetResult,
+    collection_name: str,    
     query: str,
-    embedding_function,
+    embedding_function,    
     k: int,
     reranking_function,
     k_reranker: int,
@@ -127,23 +126,9 @@ def query_doc_with_hybrid_search(
     hybrid_bm25_weight: float,
 ) -> dict:
     try:
-        if (
-            not collection_result
-            or not hasattr(collection_result, "documents")
-            or not collection_result.documents
-            or len(collection_result.documents) == 0
-            or not collection_result.documents[0]
-        ):
-            log.warning(f"query_doc_with_hybrid_search:no_docs {collection_name}")
-            return {"documents": [], "metadatas": [], "distances": []}
-
         log.debug(f"query_doc_with_hybrid_search:doc {collection_name}")
 
-        bm25_retriever = BM25Retriever.from_texts(
-            texts=collection_result.documents[0],
-            metadatas=collection_result.metadatas[0],
-        )
-        bm25_retriever.k = k
+        bm25_retriever = LEXICAL_RETRIVERS_INSTANCE.get_retriever_by_collection_name(collection_name, k)
 
         vector_search_retriever = VectorSearchRetriever(
             collection_name=collection_name,
@@ -348,20 +333,6 @@ def query_collection_with_hybrid_search(
 ) -> dict:
     results = []
     error = False
-    # Fetch collection data once per collection sequentially
-    # Avoid fetching the same data multiple times later
-    collection_results = {}
-    for collection_name in collection_names:
-        try:
-            log.debug(
-                f"query_collection_with_hybrid_search:VECTOR_DB_CLIENT.get:collection {collection_name}"
-            )
-            collection_results[collection_name] = VECTOR_DB_CLIENT.get(
-                collection_name=collection_name
-            )
-        except Exception as e:
-            log.exception(f"Failed to fetch collection {collection_name}: {e}")
-            collection_results[collection_name] = None
 
     log.info(
         f"Starting hybrid search for {len(queries)} queries in {len(collection_names)} collections..."
@@ -370,8 +341,7 @@ def query_collection_with_hybrid_search(
     def process_query(collection_name, query):
         try:
             result = query_doc_with_hybrid_search(
-                collection_name=collection_name,
-                collection_result=collection_results[collection_name],
+                collection_name=collection_name,                
                 query=query,
                 embedding_function=embedding_function,
                 k=k,
@@ -390,7 +360,6 @@ def query_collection_with_hybrid_search(
     tasks = [
         (cn, q)
         for cn in collection_names
-        if collection_results[cn] is not None
         for q in queries
     ]
 

@@ -186,8 +186,7 @@ class KnowledgeTable:
         self, id: str, form_data: KnowledgeForm, overwrite: bool = False
     ) -> Optional[KnowledgeModel]:
         try:
-            with get_db() as db:
-                knowledge = self.get_knowledge_by_id(id=id)
+            with get_db() as db:                
                 db.query(Knowledge).filter_by(id=id).update(
                     {
                         **form_data.model_dump(),
@@ -204,8 +203,7 @@ class KnowledgeTable:
         self, id: str, data: dict
     ) -> Optional[KnowledgeModel]:
         try:
-            with get_db() as db:
-                knowledge = self.get_knowledge_by_id(id=id)
+            with get_db() as db:                
                 db.query(Knowledge).filter_by(id=id).update(
                     {
                         "data": data,

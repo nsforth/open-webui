@@ -82,7 +82,7 @@ class Retrievers:
             collection_name = kb.name
             updated_at = kb.updated_at
 
-            collection_result = VECTOR_DB_CLIENT.get(collection_name)
+            collection_result = VECTOR_DB_CLIENT.get(collection_id)
 
             bm25_retriever = BM25Retriever.from_texts(
                 texts=collection_result.documents[0],

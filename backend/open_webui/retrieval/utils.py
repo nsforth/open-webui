@@ -126,7 +126,7 @@ def query_doc_with_hybrid_search(
     hybrid_bm25_weight: float,
 ) -> dict:
     try:
-        log.debug(f"query_doc_with_hybrid_search:doc {collection_name}")
+        log.info(f"query_doc_with_hybrid_search:doc {collection_name}")
 
         bm25_retriever = LEXICAL_RETRIVERS_INSTANCE.get_retriever_by_collection_name(collection_name, k)
 
@@ -161,6 +161,7 @@ def query_doc_with_hybrid_search(
             base_compressor=compressor, base_retriever=ensemble_retriever
         )
 
+        log.info(f"invoking ContextualCompressionRetriever with {query} on {collection_name}")
         result = compression_retriever.invoke(query)
 
         distances = [d.metadata.get("score") for d in result]

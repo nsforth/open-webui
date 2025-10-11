@@ -67,7 +67,7 @@ class Retrievers:
         for kb in incoming:
             if kb.id not in self._retrievers.keys():
                 kbs_to_update.append(kb)
-                log.info(f"Lexical retriever {retriever_id} created")
+                log.info(f"Lexical retriever {kb.id} created")
 
         if kbs_to_update:
             log.info(f"Lexical retrievers sync completed: {len(kbs_to_update)} retrievers need updating")

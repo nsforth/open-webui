@@ -242,7 +242,7 @@ class ModelsTable:
 
     def update_model_by_id(self, id: str, model: ModelForm) -> Optional[ModelModel]:
         model_dumped = model.model_dump(exclude={"id"})
-        knowledges = model.get("meta", {}).get("knowledge", [])
+        knowledges = model_dumped.get("meta", {}).get("knowledge", [])
         for k in knowledges:
             k.pop("files", None)
             k.pop("data", None)

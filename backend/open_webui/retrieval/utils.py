@@ -116,7 +116,7 @@ def get_doc(collection_name: str, user: UserModel = None):
 
 
 def _get_retrived_documents_names(runnable):
-    outputs = r.outputs
+    outputs = runnable.outputs
     documents = outputs.get("documents", [])
     docs_names = [doc.metadata["source"] for doc in documents]
     return " ".join(docs_names)

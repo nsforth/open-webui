@@ -103,11 +103,9 @@ class Retrievers:
                 log.info(f"Created new lexical retriever: {collection_id} ({collection_name})")
     
     def get_retriever_by_collection_name(self, collection_name: str, k: int) -> BM25Retriever:
-        for id, retriever in self._retrievers.items():
-            if retriever.name == collection_name:
-                r: BM25Retriever = retriever.bm25
-                r.k = k
-                return r
-        return None
+        retriever: Retriever = self._retrievers[collection_name]
+        bm25: BM25Retriever = retriever.bm25
+        bm25.k = k
+        return bm25
 
 LEXICAL_RETRIVERS_INSTANCE = Retrievers()

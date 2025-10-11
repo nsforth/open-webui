@@ -44,7 +44,7 @@ class Retrievers:
 
     def _scheduled_update(self) -> None:        
         log.info(f"Performing lexical retrievers scheduled update")        
-        kbs_to_update: List[str] = self.sync_retrievers(Knowledges.get_knowledge_bases())
+        kbs_to_update: List[KnowledgeUserModel] = self.sync_retrievers(Knowledges.get_knowledge_bases())
         if kbs_to_update:            
             self.update_retrievers(kbs_to_update)
 
@@ -55,11 +55,11 @@ class Retrievers:
         
         for retriever_id, retriever in list(self._retrievers.items()):
             if retriever_id in incoming_dict:
-                incoming_col: KnowledgeUserModel = incoming_dict[retriever_id]                
-                if incoming_col.updated_at > retriever.updated_at:
-                    kbs_to_update.append(retriever_id)
+                incoming_kb: KnowledgeUserModel = incoming_dict[retriever_id]                
+                if incoming_kb.updated_at > retriever.updated_at:
+                    kbs_to_update.append(incoming_kb)
                     log.info(f"Lexical retriever for knowledge base {retriever_id} ({retriever.name}) marked for update: "
-                                f"incoming timestamp {incoming_col.updated_at} > current {retriever.updated_at}")
+                                f"incoming timestamp {incoming_kb.updated_at} > current {retriever.updated_at}")
             else:                
                 del self._retrievers[retriever_id]
                 log.info(f"Lexical retriever {retriever_id} removed")

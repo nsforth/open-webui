@@ -241,13 +241,18 @@ class ModelsTable:
                 return None
 
     def update_model_by_id(self, id: str, model: ModelForm) -> Optional[ModelModel]:
+        model_dumped = model.model_dump(exclude={"id"})
+        knowledges = model.get("meta", {}).get("knowledge", [])
+        for k in knowledges:
+            k.pop("files", None)
+            k.pop("data", None)
         try:
             with get_db() as db:
                 # update only the fields that are present in the model
                 result = (
                     db.query(Model)
                     .filter_by(id=id)
-                    .update(model.model_dump(exclude={"id"}))
+                    .update(model_dumped)
                 )
                 db.commit()
 

@@ -1382,10 +1382,10 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
         if context_string != "":
             rag_prompt = request.app.state.config.RAG_TEMPLATE
-            model_system_prompt = model.get("info", {}).model.get("params", {}).get("system", "")
-            if not model_system_prompt:
+            model_system_prompt = model.get("params", {}).get("system", "")
+            if model_system_prompt:
                 rag_prompt = model_system_prompt
-                form_data["messages"] = add_or_update_user_message(
+            form_data["messages"] = add_or_update_user_message(
                 rag_template(
                     rag_prompt,
                     context_string,

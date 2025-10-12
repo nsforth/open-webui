@@ -2,6 +2,7 @@ from typing import Dict, List, Optional, Any
 from apscheduler.schedulers.background import BackgroundScheduler
 from langchain_community.retrievers import BM25Retriever
 import logging
+import datetime
 
 from open_webui.retrieval.vector.factory import VECTOR_DB_CLIENT
 from open_webui.models.knowledge import Knowledges, KnowledgeUserModel
@@ -38,7 +39,7 @@ class Retrievers:
             log.info("Lexical Retrievers singleton initialized")
 
     def _start_periodic_update(self) -> None:        
-        self._scheduler.add_job(self.scheduled_update, 'interval', minutes=RETRIVERS_UPDATE_INTERVAL)
+        self._scheduler.add_job(self.scheduled_update, 'interval', minutes=RETRIVERS_UPDATE_INTERVAL, next_run_time=datetime.datetime.now(), coalesce=True, max_instances=1)
         self._scheduler.start()
         log.info(f"Periodic update scheduler started (interval: {RETRIVERS_UPDATE_INTERVAL} minute)")
 

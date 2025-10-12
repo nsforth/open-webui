@@ -538,8 +538,6 @@ https://github.com/open-webui/open-webui
 """
 )
 
-LEXICAL_RETRIVERS_INSTANCE.scheduled_update()
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.instance_id = INSTANCE_ID

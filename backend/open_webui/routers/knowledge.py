@@ -263,7 +263,6 @@ async def reindex_knowledge_files(request: Request, user=Depends(get_verified_us
 class KnowledgeFilesResponse(KnowledgeResponse):
     files: list[FileMetadataResponse]
 
-
 @router.get("/{id}", response_model=Optional[KnowledgeFilesResponse])
 async def get_knowledge_by_id(id: str, user=Depends(get_verified_user)):
     knowledge = Knowledges.get_knowledge_by_id(id=id)
@@ -354,6 +353,7 @@ async def update_knowledge_by_id(
 
 class KnowledgeFileIdForm(BaseModel):
     file_id: str
+    no_answer: Optional[bool] = False
 
 
 @router.post("/{id}/file/add", response_model=Optional[KnowledgeFilesResponse])
@@ -418,12 +418,14 @@ def add_file_to_knowledge_by_id(
             knowledge = Knowledges.update_knowledge_data_by_id(id=id, data=data)
 
             if knowledge:
-                files = Files.get_file_metadatas_by_ids(file_ids)
+                if form_data.no_answer == True:
+                    log.info("Making no answer files/add")
+                    return KnowledgeFilesResponse(**knowledge.model_dump(), files=[],)
+                else:
+                    log.info("Making full answer files/add")
+                    files = Files.get_file_metadatas_by_ids(file_ids)
 
-                return KnowledgeFilesResponse(
-                    **knowledge.model_dump(),
-                    files=files,
-                )
+                    return KnowledgeFilesResponse(**knowledge.model_dump(),files=files,)
             else:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,

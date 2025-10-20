@@ -581,17 +581,14 @@ def remove_file_from_knowledge_by_id(
             knowledge = Knowledges.update_knowledge_data_by_id(id=id, data=data)
 
             if knowledge:
-                files = Files.get_file_metadatas_by_ids(file_ids)
+                if form_data.no_answer == True:
+                    log.info("Making no answer files/remove")
+                    return KnowledgeFilesResponse(**knowledge.model_dump(), files=[],)
+                else:
+                    log.info("Making full answer files/remove")
+                    files = Files.get_file_metadatas_by_ids(file_ids)
 
-                return KnowledgeFilesResponse(
-                    **knowledge.model_dump(),
-                    files=files,
-                )
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=ERROR_MESSAGES.DEFAULT("knowledge"),
-                )
+                    return KnowledgeFilesResponse(**knowledge.model_dump(),files=files,)            
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

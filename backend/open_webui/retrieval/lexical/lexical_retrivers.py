@@ -3,6 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from langchain_community.retrievers import BM25Retriever
 import logging
 import datetime
+from expiringdict import ExpiringDict
 
 from open_webui.retrieval.vector.factory import VECTOR_DB_CLIENT
 from open_webui.models.knowledge import Knowledges, KnowledgeUserModel
@@ -11,6 +12,7 @@ from open_webui.retrieval.lexical.stemmers import BilingualStemmer
 log = logging.getLogger(__name__)
 
 RETRIVERS_UPDATE_INTERVAL = 10 # Minutes
+FILES_RETRIEVERS = ExpiringDict(max_len=100, max_age_seconds=600)
 
 class Retriever:    
     def __init__(self, collection_id: str, collection_name: str, 
@@ -39,17 +41,17 @@ class Retrievers:
             log.info("Lexical Retrievers singleton initialized")
 
     def _start_periodic_update(self) -> None:        
-        self._scheduler.add_job(self.scheduled_update, 'interval', minutes=RETRIVERS_UPDATE_INTERVAL, next_run_time=datetime.datetime.now(), coalesce=True, max_instances=1)
+        self._scheduler.add_job(self._scheduled_update, 'interval', minutes=RETRIVERS_UPDATE_INTERVAL, next_run_time=datetime.datetime.now(), coalesce=True, max_instances=1)
         self._scheduler.start()
         log.info(f"Periodic update scheduler started (interval: {RETRIVERS_UPDATE_INTERVAL} minute)")
 
-    def scheduled_update(self) -> None:        
+    def _scheduled_update(self) -> None:        
         log.info(f"Performing lexical retrievers scheduled update")        
-        kbs_to_update: List[KnowledgeUserModel] = self.sync_retrievers(Knowledges.get_knowledge_bases())
+        kbs_to_update: List[KnowledgeUserModel] = self._sync_retrievers(Knowledges.get_knowledge_bases())
         if kbs_to_update:            
-            self.update_retrievers(kbs_to_update)
+            self._update_retrievers(kbs_to_update)
 
-    def sync_retrievers(self, incoming: List[KnowledgeUserModel]) -> List[KnowledgeUserModel]:
+    def _sync_retrievers(self, incoming: List[KnowledgeUserModel]) -> List[KnowledgeUserModel]:
         kbs_to_update: List[KnowledgeUserModel] = []
         
         incoming_dict: Dict[str, KnowledgeUserModel] = {col.id: col for col in incoming}
@@ -77,19 +79,13 @@ class Retrievers:
         
         return kbs_to_update
 
-    def update_retrievers(self, kbs: List[KnowledgeUserModel]) -> None:
+    def _update_retrievers(self, kbs: List[KnowledgeUserModel]) -> None:
         for kb in kbs:
             collection_id = kb.id
             collection_name = kb.name
             updated_at = kb.updated_at
-
-            collection_result = VECTOR_DB_CLIENT.get(collection_id)
-
-            bm25_retriever = BM25Retriever.from_texts(
-                texts=collection_result.documents[0],
-                metadatas=collection_result.metadatas[0],
-                preprocess_func=self._stemmer
-            )            
+           
+            bm25_retriever = self._create_bm25_retriever(collection_id)
 
             self._retrievers[collection_id] = Retriever(
                     collection_id=collection_id,
@@ -103,9 +99,30 @@ class Retrievers:
             else:                                
                 log.info(f"Created new lexical retriever: {collection_id} ({collection_name})")
     
-    def get_retriever_by_collection_name(self, collection_name: str, k: int) -> BM25Retriever:
-        retriever: Retriever = self._retrievers[collection_name]
-        bm25: BM25Retriever = retriever.bm25
+    def _create_bm25_retriever(self, collection_id: str) -> BM25Retriever:
+        collection_result = VECTOR_DB_CLIENT.get(collection_id)
+
+        bm25_retriever = BM25Retriever.from_texts(
+            texts=collection_result.documents[0],
+            metadatas=collection_result.metadatas[0],
+            preprocess_func=self._stemmer
+        )
+
+        return bm25_retriever
+    
+    def get_retriever_by_collection_name(self, collection_name: str, k: int) -> Optional[BM25Retriever]:
+        bm25 = None
+        if collection_name.startswith("file-"):
+            bm25: BM25Retriever = FILES_RETRIEVERS.get(collection_name)
+            if bm25 == None:
+                bm25 = self._create_bm25_retriever(collection_name)
+                FILES_RETRIEVERS[collection_name] = bm25            
+        else:
+            retriever: Retriever = self._retrievers.get(collection_name)
+            if retriever:
+                bm25: BM25Retriever = retriever.bm25
+            else:
+                return None                
         bm25.k = k
         return bm25
 

@@ -134,8 +134,10 @@ def query_doc_with_hybrid_search(
     try:
         log.info(f"query_doc_with_hybrid_search:doc {collection_name}")
 
-        bm25_retriever = LEXICAL_RETRIVERS_INSTANCE.get_retriever_by_collection_name(collection_name, k).with_listeners(
-            on_end=lambda r: log.info(f"BM25 retriver ended with {_get_retrived_documents_names(r)}")
+        bm25_retriever = LEXICAL_RETRIVERS_INSTANCE.get_retriever_by_collection_name(collection_name, k)
+        if bm25_retriever:
+            bm25_retriever = bm25_retriever.with_listeners(
+                on_end=lambda r: log.info(f"BM25 retriver ended with {_get_retrived_documents_names(r)}")
             )
 
         vector_search_retriever = VectorSearchRetriever(
@@ -146,13 +148,13 @@ def query_doc_with_hybrid_search(
             on_end=lambda r: log.info(f"Vector retriever ended with {_get_retrived_documents_names(r)}")
             )
 
-        if hybrid_bm25_weight <= 0:
-            log.info(f"query_doc_with_hybrid_search: lexical only retrieval")
+        if hybrid_bm25_weight <= 0 or bm25_retriever == None:
+            log.info(f"query_doc_with_hybrid_search: semantic only retrieval")
             ensemble_retriever = EnsembleRetriever(
                 retrievers=[vector_search_retriever], weights=[1.0]
             )
         elif hybrid_bm25_weight >= 1:
-            log.info(f"query_doc_with_hybrid_search: semantic only retrieval")
+            log.info(f"query_doc_with_hybrid_search: lexical only retrieval")
             ensemble_retriever = EnsembleRetriever(
                 retrievers=[bm25_retriever], weights=[1.0]
             )

@@ -85,7 +85,24 @@ def get_async_tool_function_and_apply_extra_params(
     update_wrapper(new_function, function)
     new_function.__signature__ = new_sig
 
+    new_function.__function__ = function  # type: ignore
+    new_function.__extra_params__ = extra_params  # type: ignore
+
     return new_function
+
+
+def get_updated_tool_function(function: Callable, extra_params: dict):
+    # Get the original function and merge updated params
+    __function__ = getattr(function, "__function__", None)
+    __extra_params__ = getattr(function, "__extra_params__", None)
+
+    if __function__ is not None and __extra_params__ is not None:
+        return get_async_tool_function_and_apply_extra_params(
+            __function__,
+            {**__extra_params__, **extra_params},
+        )
+
+    return function
 
 
 async def get_tools(
@@ -748,17 +765,13 @@ async def execute_tool_server(
         if operation.get("requestBody", {}).get("content"):
             if params:
                 body_params = params
-            else:
-                raise Exception(
-                    f"Request body expected for operation '{name}' but none found."
-                )
 
         async with aiohttp.ClientSession(
             trust_env=True, timeout=aiohttp.ClientTimeout(total=AIOHTTP_CLIENT_TIMEOUT)
         ) as session:
             request_method = getattr(session, http_method.lower())
 
-            if http_method in ["post", "put", "patch"]:
+            if http_method in ["post", "put", "patch", "delete"]:
                 async with request_method(
                     final_url,
                     json=body_params,
